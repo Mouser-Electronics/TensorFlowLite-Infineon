@@ -36,7 +36,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/examples/micro_speech/audio_provider.h"
 
-#include "PDM.h"
+#include "I2S.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h"
 
 namespace {
@@ -64,17 +64,16 @@ void CaptureSamples() {
   // Determine the index of this sample in our ring buffer
   const int capture_index = start_sample_offset % kAudioCaptureBufferSize;
   // Read the data to the correct place in our buffer
-  PDM.read(g_audio_capture_buffer + capture_index, DEFAULT_PDM_BUFFER_SIZE);
+  I2S.read(g_audio_capture_buffer + capture_index, DEFAULT_PDM_BUFFER_SIZE);
   // This is how we let the outside world know that new audio data has arrived.
   g_latest_audio_timestamp = time_in_ms;
 }
 
 TfLiteStatus InitAudioRecording(tflite::ErrorReporter* error_reporter) {
   // Hook up the callback that will be called with each sample
-  PDM.onReceive(CaptureSamples);
+  I2S.onReceive(CaptureSamples);
   // Start listening for audio: MONO @ 16KHz with gain at 20
-  PDM.begin(1, kAudioSampleFrequency);
-  PDM.setGain(20);
+  I2S.begin(I2S_PHILIPS_MODE, 11000, 20);
   // Block until we have our first audio sample
   while (!g_latest_audio_timestamp) {
   }
